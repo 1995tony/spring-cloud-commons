@@ -45,11 +45,15 @@ public class StandardScopeCache implements ScopeCache {
 		return this.cache.get(name);
 	}
 
+//	如果不存在，才會 put 進去
 	public Object put(String name, Object value) {
+//		result 若不等於 null, 表示快取存在了, 不會進行 put 操作
 		Object result = this.cache.putIfAbsent(name, value);
 		if (result != null) {
+//			直接返回舊物件
 			return result;
 		}
+//		put 成功, 返回新物件
 		return value;
 	}
 

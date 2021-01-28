@@ -178,9 +178,11 @@ public class GenericScope
 
 	@Override
 	public Object get(String name, ObjectFactory<?> objectFactory) {
+//		將 Bean 快取下來
 		BeanLifecycleWrapper value = this.cache.put(name, new BeanLifecycleWrapper(name, objectFactory));
 		this.locks.putIfAbsent(name, new ReentrantReadWriteLock());
 		try {
+//			建立Bean，只會建立一次，後面直接返回建立好的Bean
 			return value.getBean();
 		}
 		catch (RuntimeException e) {
@@ -361,6 +363,7 @@ public class GenericScope
 
 		private Runnable callback;
 
+//		這裡進入上面的 BeanLifecycleWrapper value = this.cache.put(name, new BeanLifecycleWrapper(name, objectFactory));
 		BeanLifecycleWrapper(String name, ObjectFactory<?> objectFactory) {
 			this.name = name;
 			this.objectFactory = objectFactory;
@@ -373,7 +376,7 @@ public class GenericScope
 		public void setDestroyCallback(Runnable callback) {
 			this.callback = callback;
 		}
-
+//		實際Bean物件，快取下來了
 		public Object getBean() {
 			if (this.bean == null) {
 				synchronized (this.name) {
