@@ -49,31 +49,42 @@ public class LegacyContextRefresher extends ContextRefresher {
 	/* For testing. */ ConfigurableApplicationContext addConfigFilesToEnvironment() {
 		ConfigurableApplicationContext capture = null;
 		try {
+//			從上下文拿出 Environment 物件, copy 一份
 			StandardEnvironment environment = copyEnvironment(getContext().getEnvironment());
 			SpringApplicationBuilder builder = new SpringApplicationBuilder(Empty.class)
+					// banner和 web 都關閉，因為只是想單純利用新的 Spring 上下文構造一個新的 Environment
 					.properties(BOOTSTRAP_ENABLED_PROPERTY + "=true").bannerMode(Banner.Mode.OFF)
-					.web(WebApplicationType.NONE).environment(environment);
+					.web(WebApplicationType.NONE)
+					// 傳入我們剛剛 copy 的 Environment 例項
+					.environment(environment);
 			// Just the listeners that affect the environment (e.g. excluding logging
 			// listener because it has side effects)
 			builder.application().setListeners(
 					Arrays.asList(new BootstrapApplicationListener(), new BootstrapConfigFileApplicationListener()));
+			// 啟動上下文
 			capture = builder.run();
 			if (environment.getPropertySources().contains(REFRESH_ARGS_PROPERTY_SOURCE)) {
 				environment.getPropertySources().remove(REFRESH_ARGS_PROPERTY_SOURCE);
 			}
+			// 這個時候，通過上下文 SpringIOC 的啟動, 剛剛 Environment 物件就變成帶有最新配置值的 Environment 了
+			// 獲取舊的外部化配置列表
 			MutablePropertySources target = getContext().getEnvironment().getPropertySources();
 			String targetName = null;
+			// 遍歷這個最新的 Environment 外部化配置列表
 			for (PropertySource<?> source : environment.getPropertySources()) {
 				String name = source.getName();
 				if (target.contains(name)) {
 					targetName = name;
 				}
+				// 某些配置源不做替換，讀者自行檢視原始碼
+				// 一般的配置源都會進入 if 語句
 				if (!this.standardSources.contains(name)) {
 					if (target.contains(name)) {
 						target.replace(name, source);
 					}
 					else {
 						if (targetName != null) {
+							// 用新的配置替換舊的配置
 							target.addAfter(targetName, source);
 							// update targetName to preserve ordering
 							targetName = name;

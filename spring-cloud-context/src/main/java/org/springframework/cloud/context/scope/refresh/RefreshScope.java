@@ -147,6 +147,7 @@ public class RefreshScope extends GenericScope
 
 	@ManagedOperation(description = "Dispose of the current instance of all beans "
 			+ "in this scope and force a refresh on next method execution.")
+//	銷燬Bean
 	public void refreshAll() {
 		super.destroy();
 		this.context.publishEvent(new RefreshScopeRefreshedEvent());

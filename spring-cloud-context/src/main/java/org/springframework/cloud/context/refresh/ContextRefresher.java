@@ -80,14 +80,20 @@ public abstract class ContextRefresher {
 	}
 
 	public synchronized Set<String> refresh() {
+		// 更新上下文中 Environment 外部化配置值
 		Set<String> keys = refreshEnvironment();
+		// 呼叫 scope 物件的 refreshAll 方法
 		this.scope.refreshAll();
 		return keys;
 	}
 
 	public synchronized Set<String> refreshEnvironment() {
+		// 獲取重新整理配置前的配置資訊，對比用
 		Map<String, Object> before = extract(this.context.getEnvironment().getPropertySources());
+//		重新整理 Environment
 		updateEnvironment();
+		// 這裡上下文的 Environment 已經是新的值了
+		// 進行新舊對比，結果返回有變化的值
 		Set<String> keys = changes(before, extract(this.context.getEnvironment().getPropertySources())).keySet();
 		this.context.publishEvent(new EnvironmentChangeEvent(this.context, keys));
 		return keys;

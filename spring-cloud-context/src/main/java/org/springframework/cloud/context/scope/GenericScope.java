@@ -132,6 +132,7 @@ public class GenericScope
 	@Override
 	public void destroy() {
 		List<Throwable> errors = new ArrayList<Throwable>();
+//		快取清空
 		Collection<BeanLifecycleWrapper> wrappers = this.cache.clear();
 		for (BeanLifecycleWrapper wrapper : wrappers) {
 			try {
@@ -376,11 +377,13 @@ public class GenericScope
 		public void setDestroyCallback(Runnable callback) {
 			this.callback = callback;
 		}
-//		實際Bean物件，快取下來了
+//		實際 Bean 物件，快取下來了
 		public Object getBean() {
+//			如果是新的 或是有更新過, 這裡為 Null
 			if (this.bean == null) {
 				synchronized (this.name) {
 					if (this.bean == null) {
+//						呼叫 IOC容器的 createBean，再建立一個Bean出來
 						this.bean = this.objectFactory.getObject();
 					}
 				}
